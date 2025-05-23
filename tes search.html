@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Header Dark Mode Toggle Floating</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <style>
+        :root {
+            /* Warna Dasar */
+            --color-primary: #0077cc;
+            --color-text: #333;
+            --color-bg: #fff;
+            --color-header-bg: #fff;
+            --color-shadow: rgba(0, 0, 0, 0.1);
+
+            /* Typography */
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-size-logo: 1.25rem;
+            --font-size-icon: 1.2rem;
+
+            /* Spacing & Radius */
+            --spacing-sm: 0.75rem;
+            --spacing-md: 1rem;
+            --border-radius-header: 1rem;
+            --header-height: 60px; /* Variabel untuk tinggi header */
+            --header-padding: 0.75rem 1rem;
+
+            /* Floating Elemen (Dark Mode Toggle) */
+            --floating-bg: #fff;
+            --floating-shadow: rgba(0, 0, 0, 0.2);
+
+            /* Input & Pencarian */
+            --border-color: #ccc;
+            --input-bg: #fff;
+
+            /* Sidebar */
+            --sidebar-width-collapsed: 50px;
+            --sidebar-width-expanded: 250px;
+            --sidebar-border: 1px solid var(--border-color);
+        }
+
+        /* Dark Mode Styles */
+        body.dark {
+            --color-bg: #121212;
+            --color-text: #eee;
+            --color-header-bg: #2f2c2a;
+            --color-shadow: rgba(0, 0, 0, 0.7);
+
+            --floating-bg: #2f2c2a;
+            --floating-shadow: rgba(0, 0, 0, 0.9);
+
+            --border-color: #555;
+            --input-bg: #444;
+            --sidebar-border: 1px solid #444;
+        }
+
+        /* Reset Dasar */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--color-bg);
+            color: var(--color-text);
+            transition: background 0.3s, color 0.3s, padding-left 0.3s; /* Tambahkan transisi padding */
+            line-height: 1.6;
+            padding-top: var(--header-height); /* Jarak dari header */
+        }
+
+        /* Padding body saat menu samping desktop terbuka */
+        body.nav-open-desktop {
+            padding-left: var(--sidebar-width-expanded);
+        }
+        /* Padding body saat menu samping desktop tertutup */
+        body.nav-closed-desktop {
+            padding-left: var(--sidebar-width-collapsed);
+        }
+
+
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Header */
+        header {
+            position: fixed; /* Ubah menjadi fixed agar tidak scroll bersama konten */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            z-index: 1000;
+            background: var(--color-header-bg);
+            box-shadow: 0 2px 8px var(--color-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--header-padding);
+            border-radius: 0 0 var(--border-radius-header) var(--border-radius-header);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .menu-left,
+        .menu-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .logo-container {
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            /* Untuk menggeser logo ke kiri, hapus transform: translate dan gunakan left: 0 */
+            /* min-width: 120px; */ /* Tidak lagi diperlukan karena posisi absolute */
+        }
+
+        /* Menggeser keseluruhan blok kiri sedikit ke kiri */
+        header .menu-left {
+            padding-left: 0.5rem; /* Sesuaikan sesuai kebutuhan */
+        }
+
+        .logo-dinamis {
+            font-size: var(--font-size-logo);
+            font-weight: bold;
+            color: var(--color-primary);
+            transition: color 0.3s;
+            position: absolute; /* Untuk animasi logo */
+            top: 50%;
+            left: 0; /* Menggeser ke kiri */
+            transform: translateY(-50%); /* Hanya transform Y untuk centering vertikal */
+            white-space: nowrap;
+        }
+
+        .logo-dinamis img {
+            max-height: 40px;
+            width: auto;
+            display: block;
+        }
+
+        .JHtext {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .JHimg {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Hamburger Menu Icon */
+        button.icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            color: var(--color-text);
+            transition: color 0.2s ease-in-out;
+            user-select: none;
+        }
+
+        button.icon-btn:hover {
+            color: var(--color-primary);
+        }
+
+        .hamburger-line {
+            height: 3px;
+            background-color: var(--color-text);
+            transition: 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .icon-btn:hover .hamburger-line {
+            background-color: var(--color-primary);
+            transform: scaleX(1.05);
+        }
+
+        .line1 { width: 15px; }
+        .line2 { width: 28px; }
+        .line3 { width: 22px; }
+
+        .icon-btn.active .line1 {
+            transform: translateY(9px) rotate(45deg);
+            width: 28px;
+        }
+
+        .icon-btn.active .line2 {
+            opacity: 0;
+        }
+
+        .icon-btn.active .line3 {
+            transform: translateY(-9px) rotate(-45deg);
+            width: 28px;
+        }
+
+        /* Navigasi Menu Samping */
+        .nav-menu {
+            position: fixed;
+            top: var(--header-height);
+            left: -100%; /* Sembunyikan ke kiri secara default di mobile */
+            width: 70%;
+            max-width: 300px;
+            height: calc(100vh - var(--header-height));
+            background: var(--color-header-bg);
+            display: flex;
+            flex-direction: column;
+            border-right: var(--sidebar-border);
+            box-shadow: 2px 0 10px var(--color-shadow);
+            z-index: 1050;
+            overflow-y: auto;
+            transition: left 0.3s ease-in-out;
+        }
+
+        .nav-menu.show {
+            left: 0; /* Tampilkan menu */
+        }
+
+        .nav-menu ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nav-menu a {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--color-text);
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+
+        .nav-menu a:hover,
+        .nav-menu a.active {
+            background: rgba(0, 119, 204, 0.1);
+            color: var(--color-primary);
+        }
+        
+        body.dark .nav-menu a:hover,
+        body.dark .nav-menu a.active {
+            background: rgba(0, 119, 204, 0.2);
+            color: var(--color-primary);
+        }
+
+        .nav-menu a i {
+            min-width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+            color: inherit;
+        }
+
+        .nav-menu a span {
+            flex-grow: 1;
+        }
+
+        /* Submenu Styles */
+        .submenu {
+            display: none;
+            background: rgba(0, 0, 0, 0.03);
+            border-left: 3px solid var(--color-primary);
+        }
+
+        body.dark .submenu {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .submenu.open {
+            display: block;
+        }
+
+        /* Penyesuaian padding untuk setiap level submenu */
+        .submenu li a {
+            padding-left: 40px; /* Level 1 submenu */
+        }
+        .submenu .submenu li a {
+            padding-left: 60px; /* Level 2 submenu */
+        }
+        .submenu .submenu .submenu li a {
+            padding-left: 80px; /* Level 3 submenu */
+        }
+        /* Tambahkan padding-left lebih lanjut jika Anda punya lebih banyak level */
+
+        .arrow {
+            margin-left: auto;
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+
+        a.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Overlay */
+        .overlay {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: 100%;
+            height: calc(100vh - var(--header-height));
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+
+        /* Desktop Search Box */
+        .desktop-search {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 16px;
+            position: relative;
+            display: flex; /* Default: Tampilkan di desktop */
+            align-items: center;
+        }
+
+        .desktop-search input {
+            width: 100%;
+            padding: 8px 38px 8px 38px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--color-text);
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .desktop-search .fa-search {
+            position: absolute;
+            left: 12px;
+            font-size: 18px;
+            color: var(--border-color);
+            pointer-events: none;
+        }
+
+        .desktop-search .fa-times {
+            position: absolute;
+            right: 12px;
+            font-size: 18px;
+            color: var(--border-color);
+            cursor: pointer;
+            display: none;
+        }
+
+        .desktop-search input:not(:placeholder-shown) + .fa-times {
+            display: block;
+        }
+
+        /* Mobile Search Icon */
+        .mobile-search-trigger {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--color-text);
+            cursor: pointer;
+            display: none; /* Sembunyikan di desktop secara default */
+        }
+
+        /* Mobile Search Full Screen */
+        .mobile-search {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-header-bg);
+            padding: 12px 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 10px var(--color-shadow);
+            z-index: 9999;
+        }
+
+        .mobile-search.show {
+            display: flex;
+        }
+
+        .mobile-search input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--color-text);
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .mobile-search .close-search {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--color-text);
+            cursor: pointer;
+        }
+
+        /* Dark Mode Toggle Dropdown */
+        .dark-toggle-container {
+            position: relative;
+        }
+
+        .dark-toggle-menu {
+            position: absolute;
+            top: 2.5rem;
+            right: 0;
+            background: var(--floating-bg);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px var(--floating-shadow);
+            display: none;
+            flex-direction: column;
+            width: 140px;
+            padding: 0.5rem 0;
+            user-select: none;
+            z-index: 1100;
+            transition: background 0.3s;
+        }
+
+        .dark-toggle-menu.active {
+            display: flex;
+        }
+
+        .dark-toggle-menu button {
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: var(--color-text);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .dark-toggle-menu button:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        body.dark .dark-toggle-menu button:hover {
+            background: #005a9e;
+            color: white;
+        }
+
+        .dark-toggle-menu button.selected {
+            font-weight: bold;
+            background: var(--color-primary);
+            color: white;
+        }
+
+        body.dark .dark-toggle-menu button.selected {
+            background: #005a9e;
+            color: white;
+        }
+
+        .dark-toggle-menu i {
+            font-size: 1.2rem;
+            min-width: 1.4rem;
+            text-align: center;
+        }
+
+        /* Konten Utama (C-cont) - Menggunakan Grid Layout */
+        .C-cont {
+            display: grid;
+            gap: 20px; /* Jarak antar item grid */
+            padding: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            grid-template-columns: 1fr; /* Default mobile: satu kolom */
+            grid-template-areas:
+                "random1"
+                "post"
+                "sidebar"
+                "random2"
+                "footer";
+        }
+
+        .C-cont section,
+        .C-cont main,
+        .C-cont aside,
+        .C-cont footer {
+            background: var(--color-header-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px var(--color-shadow);
+        }
+
+        .C-cont h2 {
+            color: var(--color-primary);
+            margin-bottom: 15px;
+        }
+
+        /* Penempatan Area Grid */
+        .random1 { grid-area: random1; }
+        .main-post { grid-area: post; }
+        .sidebar { grid-area: sidebar; }
+        .random2 { grid-area: random2; }
+        .site-footer { grid-area: footer; }
+
+        /* Tambahan untuk teks contoh */
+        .placeholder-content {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            color: var(--color-text);
+        }
+
+
+        /* Responsive Rules */
+        @media (max-width: 767px) {
+            .desktop-search {
+                display: none; /* Sembunyikan desktop search di mobile */
+            }
+
+            .mobile-search-trigger {
+                display: block; /* Tampilkan mobile search trigger di mobile */
+            }
+
+            /* Atur ulang padding body saat menu samping mobile terbuka */
+            body.nav-open-mobile {
+                padding-left: 0; /* Pastikan tidak ada padding tambahan dari sidebar desktop */
+                overflow: hidden; /* Mencegah scroll body saat menu mobile terbuka */
+            }
+
+            /* Sembunyikan menu samping di mobile secara default */
+            .nav-menu {
+                left: -100%;
+            }
+            .nav-menu.show {
+                left: 0;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-search-trigger {
+                display: none; /* Sembunyikan mobile search trigger di desktop */
+            }
+
+            .desktop-search {
+                display: flex; /* Tampilkan desktop search di desktop */
+            }
+
+            /* Navigasi menu samping di desktop */
+            .nav-menu {
+                position: fixed;
+                top: var(--header-height);
+                left: 0; /* Selalu tampilkan di desktop */
+                width: var(--sidebar-width-collapsed); /* Ukuran compact */
+                height: calc(100vh - var(--header-height));
+                border-right: var(--sidebar-border);
+                box-shadow: none; /* Hilangkan bayangan di desktop karena akan ada shadow dari header */
+                transition: width 0.3s ease-in-out;
+            }
+
+            .nav-menu.show {
+                width: var(--sidebar-width-expanded); /* Lebar diperluas saat aktif */
+            }
+
+            .nav-menu a {
+                justify-content: center; /* Ikon di tengah saat compact */
+                padding: 14px 10px; /* Padding lebih kecil saat compact */
+            }
+
+            .nav-menu.show a {
+                justify-content: flex-start; /* Teks rata kiri saat diperluas */
+                padding: 14px 20px; /* Padding normal saat diperluas */
+            }
+
+            .nav-menu a span {
+                display: none; /* Sembunyikan teks menu saat compact */
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out;
+            }
+
+            .nav-menu.show a span {
+                display: inline; /* Tampilkan teks menu saat diperluas */
+                opacity: 1;
+            }
+
+            .nav-menu a .arrow {
+                display: none; /* Sembunyikan panah di desktop menu (compact) */
+            }
+            .nav-menu.show a .arrow {
+                display: block; /* Tampilkan panah saat diperluas */
+            }
+
+            .overlay {
+                display: none !important; /* Pastikan overlay tidak muncul di desktop */
+            }
+
+            /* Grid Layout untuk Tablet/Desktop */
+            .C-cont {
+                grid-template-columns: 1fr 300px; /* Dua kolom: konten & sidebar */
+                grid-template-areas:
+                    "random1 random1"
+                    "post sidebar"
+                    "random2 random2"
+                    "footer footer";
+                margin-left: 0; /* Reset margin-left default */
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .C-cont {
+                grid-template-columns: 1fr 350px; /* Sidebar lebih lebar di layar besar */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header-container" id="header-container">
+        <div class="menu-left">
+            <button class="icon-btn" id="hamburger" aria-label="Menu">
+                <div class="hamburger-line line1"></div>
+                <div class="hamburger-line line2"></div>
+                <div class="hamburger-line line3"></div>
+            </button>
+
+            <div class="logo-container">
+                <div id="textLogo" class="JHtext logo-dinamis">Nutibers</div>
+                <div id="imgLogo" class="JHimg logo-dinamis">
+                    <img src="https://static.canva.com/web/images/8439b51bb7a19f6e65ce1064bc37c197.svg" alt="Logo Gambar" />
+                </div>
+            </div>
+        </div>
+
+        <div class="desktop-search">
+            <input type="search" id="desktop-search-input" placeholder="Cari sesuatu..." aria-label="Pencarian" />
+            <i class="fas fa-search"></i>
+            <i class="fas fa-times" id="desktop-clear" aria-label="Bersihkan pencarian"></i>
+        </div>
+
+        <div class="menu-right">
+            <button class="mobile-search-trigger" aria-label="Buka pencarian">
+                <i class="fas fa-search"></i>
+            </button>
+
+            <div class="dark-toggle-container">
+                <button class="icon-btn" id="darkToggleBtn" aria-label="Ganti mode tema">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="dark-toggle-menu" id="darkToggleMenu" role="menu" aria-label="Pilih mode tema">
+                    <button type="button" data-theme="system" role="menuitem" aria-pressed="false">
+                        <i class="fas fa-desktop"></i> System
+                    </button>
+                    <button type="button" data-theme="light" role="menuitem" aria-pressed="false">
+                        <i class="fas fa-sun"></i> Light
+                    </button>
+                    <button type="button" data-theme="dark" role="menuitem" aria-pressed="false">
+                        <i class="fas fa-moon"></i> Dark
+                    </button>
+                </div>
+            </div>
+
+            <button class="icon-btn" id="bookmarkBtn" aria-label="Bookmark">
+                <i class="fas fa-bookmark"></i>
+            </button>
+        </div>
+    </header>
+
+    <nav class="nav-menu" id="navMenu">
+        <ul>
+            <li><a href="#"><i class="fas fa-home"></i> <span>Beranda</span></a></li>
+            <li><a href="#" class="_"><i class="fas fa-list"></i> <span>Daftar Isi</span> <span class="arrow">&#9660;</span></a>
+                <ul class="submenu">
+                    <li><a href="#"><i class="fas fa-caret-right"></i> <span>Item Biasa 1</span></a></li>
+                    <li><a href="#" class="__"><i class="fas fa-file-alt"></i> <span>Sub-submenu</span> <span class="arrow">&#9660;</span></a>
+                        <ul class="submenu">
+                            <li><a href="#"><i class="fas fa-angle-right"></i> <span>Sub-sub-item A</span></a></li>
+                            <li><a href="#"><i class="fas fa-angle-right"></i> <span>Sub-sub-item B</span></a></li>
+                            <li><a href="#" class="___"><i class="fas fa-cogs"></i> <span>Lebih Dalam Lagi</span> <span class="arrow">&#9660;</span></a>
+                                <ul class="submenu">
+                                    <li><a href="#"><span>Level 4 - Item 1</span></a></li>
+                                    <li><a href="#"><span>Level 4 - Item 2</span></a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><a href="#"><i class="fas fa-caret-right"></i> <span>Item Biasa 2</span></a></li>
+                </ul>
+            </li>
+            <li><a href="#"><i class="fas fa-concierge-bell"></i> <span>Layanan</span></a></li>
+            <li><a href="#"><i class="fas fa-info-circle"></i> <span>Tentang</span></a></li>
+            <li><a href="#"><i class="fas fa-envelope"></i> <span>Kontak</span></a></li>
+        </ul>
+    </nav>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="mobile-search" id="mobileSearch">
+        <input type="search" id="mobile-search-input" placeholder="Cari sesuatu..." aria-label="Pencarian mobile" />
+        <button class="close-search" id="closeMobileSearch" aria-label="Tutup pencarian">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="C-cont">
+        <section class="random1">
+            <h2>Area Random 1</h2>
+            <p>Konten acak atau banner di bagian atas.</p>
+            <div class="placeholder-content">
+                Ini adalah contoh konten untuk area random 1. Anda bisa menempatkan iklan, postingan unggulan, atau elemen dinamis lainnya di sini.
+            </div>
+        </section>
+
+        <main class="main-post">
+            <h2>Postingan Utama</h2>
+            <p>Ini adalah area untuk konten postingan utama Anda.</p>
+            <div class="placeholder-content">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+            </div>
+        </main>
+
+        <aside class="sidebar">
+            <h2>Sidebar</h2>
+            <p>Widget atau informasi tambahan di samping postingan.</p>
+            <div class="placeholder-content">
+                <ul>
+                    <li>Widget Populer</li>
+                    <li>Kategori</li>
+                    <li>Arsip</li>
+                    <li>Iklan</li>
+                </ul>
+            </div>
+        </aside>
+
+        <section class="random2">
+            <h2>Area Random 2</h2>
+            <p>Konten acak di bawah postingan utama.</p>
+            <div class="placeholder-content">
+                Anda bisa menambahkan konten terkait, artikel lain, atau galeri gambar di sini.
+            </div>
+        </section>
+
+      
+    </div>
+
+      <footer class="site-footer">
+            <h2>Footer</h2>
+            <p>Informasi hak cipta, navigasi tambahan, dll.</p>
+            <div class="placeholder-content">
+                &copy; 2024 Nama Situs Anda. Hak Cipta Dilindungi.
+            </div>
+        </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('navMenu');
+            const overlay = document.getElementById('overlay');
+            const body = document.body;
+
+            // Fungsi untuk cek apakah mode desktop (media query)
+            function isDesktop() {
+                return window.matchMedia('(min-width: 768px)').matches;
+            }
+
+            // Atur padding body berdasarkan status menu dan mode (mobile/desktop)
+            function setBodyPadding() {
+                if (isDesktop()) {
+                    body.classList.remove('nav-open-mobile');
+                    if (navMenu.classList.contains('show')) {
+                        body.classList.add('nav-open-desktop');
+                        body.classList.remove('nav-closed-desktop');
+                    } else {
+                        body.classList.remove('nav-open-desktop');
+                        body.classList.add('nav-closed-desktop');
+                    }
+                } else {
+                    body.classList.remove('nav-open-desktop', 'nav-closed-desktop');
+                    if (navMenu.classList.contains('show')) {
+                        body.classList.add('nav-open-mobile');
+                    } else {
+                        body.classList.remove('nav-open-mobile');
+                    }
+                }
+            }
+
+
+            // Reset semua submenu (close semua)
+            function resetSubmenus() {
+                const openSubs = navMenu.querySelectorAll('.submenu.open');
+                openSubs.forEach(sub => sub.classList.remove('open'));
+
+                const activeLinks = navMenu.querySelectorAll('a.active');
+                activeLinks.forEach(link => link.classList.remove('active'));
+            }
+
+            // Toggle hamburger dan menu
+            hamburger.addEventListener('click', () => {
+                hamburger.classList.toggle('active');
+                navMenu.classList.toggle('show');
+                overlay.classList.toggle('show');
+                setBodyPadding(); // Perbarui padding body
+                
+                // Di desktop, jika menu ditutup, reset submenu
+                if (!hamburger.classList.contains('active') && isDesktop()) {
+                    resetSubmenus();
+                }
+            });
+
+            // Klik overlay tutup menu dan reset submenu
+            overlay.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('show');
+                overlay.classList.remove('show');
+                setBodyPadding(); // Perbarui padding body
+                
+                // Di desktop, jika menu ditutup via overlay, reset submenu
+                if (isDesktop()) {
+                    resetSubmenus();
+                }
+            });
+
+            // Perbarui padding body saat resize dan status menu
+            window.addEventListener('resize', () => {
+                setBodyPadding();
+                // Jika di desktop dan menu tidak aktif (hamburger tidak active), pastikan submenu tertutup
+                if (isDesktop() && !hamburger.classList.contains('active')) {
+                    resetSubmenus();
+                }
+            });
+
+            // Panggil setBodyPadding saat halaman dimuat
+            setBodyPadding();
+
+            // LOGIKA SUBMENU (Dengan penanda underscore)
+            // Menemukan semua tautan yang memiliki kelas yang diawali dengan underscore
+            const submenuTriggerLinks = navMenu.querySelectorAll('a[class*="_"]');
+            
+            submenuTriggerLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // Cek apakah link memiliki kelas underscore (misal: _, __, ___)
+                    const classList = Array.from(e.currentTarget.classList);
+                    const hasUnderscoreClass = classList.some(cls => cls.startsWith('_'));
+
+                    if (hasUnderscoreClass) {
+                        e.preventDefault(); // Mencegah navigasi langsung
+                        const submenu = e.currentTarget.nextElementSibling; // Mengambil elemen submenu berikutnya
+
+                        if (submenu && submenu.classList.contains('submenu')) {
+                            // Tutup submenu lain di level yang sama jika ada
+                            const parentLi = e.currentTarget.closest('li');
+                            const siblings = Array.from(parentLi.parentNode.children);
+                            siblings.forEach(sibling => {
+                                const siblingSubmenu = sibling.querySelector('.submenu');
+                                const siblingLink = sibling.querySelector('a');
+                                if (siblingSubmenu && siblingSubmenu !== submenu && siblingSubmenu.classList.contains('open')) {
+                                    siblingSubmenu.classList.remove('open');
+                                    if (siblingLink) siblingLink.classList.remove('active');
+                                }
+                            });
+
+                            submenu.classList.toggle('open');
+                            e.currentTarget.classList.toggle('active'); // Untuk memutar panah
+                        }
+                    }
+                });
+            });
+
+
+            // Animasi Logo Dinamis (Nutibers / Image)
+            const textLogo = document.getElementById("textLogo");
+            const imgLogo = document.getElementById("imgLogo");
+
+            setInterval(() => {
+                const isTextVisible = textLogo.classList.contains("JHtext");
+                if (isTextVisible) {
+                    textLogo.classList.remove("JHtext");
+                    textLogo.classList.add("JHimg");
+                    imgLogo.classList.remove("JHimg");
+                    imgLogo.classList.add("JHtext");
+                } else {
+                    imgLogo.classList.remove("JHtext");
+                    imgLogo.classList.add("JHimg");
+                    textLogo.classList.remove("JHimg");
+                    textLogo.classList.add("JHtext");
+                }
+            }, 6000); // Ganti setiap 6 detik
+
+            // Dark mode toggle dropdown
+            const darkToggleBtn = document.getElementById('darkToggleBtn');
+            const darkToggleMenu = document.getElementById('darkToggleMenu');
+            const darkToggleButtons = darkToggleMenu.querySelectorAll('button');
+
+            // Buka tutup menu toggle dark mode
+            darkToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Mencegah event klik menyebar ke document
+                darkToggleMenu.classList.toggle('active');
+            });
+
+            // Set theme and simpan di localStorage
+            function setTheme(theme) {
+                if (theme === 'system') {
+                    localStorage.removeItem('theme');
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.body.classList.toggle('dark', prefersDark);
+                } else if (theme === 'dark') {
+                    localStorage.setItem('theme', 'dark');
+                    document.body.classList.add('dark');
+                } else if (theme === 'light') {
+                    localStorage.setItem('theme', 'light');
+                    document.body.classList.remove('dark');
+                }
+                updateToggleButtons(theme);
+            }
+
+            function updateToggleButtons(currentTheme) {
+                darkToggleButtons.forEach(btn => {
+                    const btnTheme = btn.getAttribute('data-theme');
+                    btn.setAttribute('aria-pressed', btnTheme === currentTheme ? 'true' : 'false');
+                    btn.classList.toggle('selected', btnTheme === currentTheme);
+                });
+            }
+
+            // Load theme dari localStorage atau system
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                setTheme('system'); // Default ke sistem jika belum ada di localStorage
+            }
+            
+            darkToggleButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.getAttribute('data-theme');
+                    setTheme(theme);
+                    darkToggleMenu.classList.remove('active');
+                });
+            });
+
+
+            // Listener untuk perubahan preferensi sistem (jika mode 'system' aktif)
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme') || localStorage.getItem('theme') === 'system') {
+                    document.body.classList.toggle('dark', e.matches);
+                    updateToggleButtons('system');
+                }
+            });
+
+
+            // Klik luar menu dark toggle untuk tutup
+            document.addEventListener('click', (e) => {
+                if (!darkToggleBtn.contains(e.target) && !darkToggleMenu.contains(e.target)) {
+                    darkToggleMenu.classList.remove('active');
+                }
+            });
+
+            // Desktop search clear button
+            const desktopSearchInput = document.getElementById('desktop-search-input');
+            const desktopClearBtn = document.getElementById('desktop-clear');
+
+            desktopClearBtn.addEventListener('click', () => {
+                desktopSearchInput.value = '';
+                desktopSearchInput.focus();
+                desktopClearBtn.style.display = 'none';
+            });
+
+            desktopSearchInput.addEventListener('input', () => {
+                desktopClearBtn.style.display = desktopSearchInput.value.length > 0 ? 'block' : 'none';
+            });
+
+            // Mobile search toggle
+            const mobileSearchTrigger = document.querySelector('.mobile-search-trigger');
+            const mobileSearch = document.getElementById('mobileSearch');
+            const closeMobileSearchBtn = document.getElementById('closeMobileSearch');
+            const mobileSearchInput = document.getElementById('mobile-search-input');
+
+            mobileSearchTrigger.addEventListener('click', () => {
+                mobileSearch.classList.add('show');
+                mobileSearchInput.focus();
+            });
+
+            closeMobileSearchBtn.addEventListener('click', () => {
+                mobileSearch.classList.remove('show');
+                mobileSearchInput.value = '';
+            });
+
+            // Optional: tekan ESC untuk tutup pencarian mobile
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileSearch.classList.contains('show')) {
+                    mobileSearch.classList.remove('show');
+                    mobileSearchInput.value = '';
+                }
+            });
+
+            // Bookmark button functionality (contoh sederhana)
+            const bookmarkBtn = document.getElementById('bookmarkBtn');
+            bookmarkBtn.addEventListener('click', () => {
+                alert('Fungsi Bookmark akan diimplementasikan di sini!');
+            });
+        });
+    </script>
+</body>
+
+</html>
